@@ -1,65 +1,70 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TextAnalyzerAPI.Domain.Models;
 using TextAnalyzerAPI.Services.Features.Numbers;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace TextAnalyzerAPI.Controllers.V1;
-
-[ApiController]
-[Route("api/v1/[controller]")]
-public class NumberController : ControllerBase
+namespace TextAnalyzerAPI.Controllers.V1
 {
-    private readonly NumberService _numberService;
-
-    public NumberController(NumberService numberService)
+    [ApiController]
+    [Route("api/v1/[controller]")]
+    [Authorize] // ✅ Protegido con JWT
+    public class NumberController : ControllerBase
     {
-        _numberService = numberService;
-    }
+        private readonly NumberService _numberService;
 
-    /// <summary>
-    /// Verifica si un número es par o impar
-    /// </summary>
-    /// <param name="request">Número a verificar (solo dígitos)</param>
-    /// <returns>Información sobre el número</returns>
-    [HttpPost("check")]
-    [SwaggerOperation(Summary = "Verificar par/impar", 
-                     Description = "Verifica si el número es par o impar. Solo acepta números enteros.")]
-    [SwaggerResponse(200, "Verificación exitosa", typeof(NumberResponse))]
-    [SwaggerResponse(400, "Datos inválidos")]
-    public IActionResult CheckNumber([FromBody] NumberRequest request)
-    {
-        if (!ModelState.IsValid)
+        public NumberController(NumberService numberService)
         {
-            return BadRequest(ModelState);
+            _numberService = numberService;
         }
 
-        var result = _numberService.GetNumberInfo(request.Number);
-        
-        if (result.Type == "Error")
+        /// <summary>
+        /// Verifica si un número es par o impar (POST)
+        /// </summary>
+        /// <param name="request">Número a verificar</param>
+        /// <returns>Resultado de la verificación</returns>
+        [HttpPost("check")]
+        [SwaggerOperation(Summary = "Verifica si el número es par o impar (POST)",
+                          Description = "Envía un número en el cuerpo de la solicitud para verificar si es par o impar.")]
+        [SwaggerResponse(200, "Verificación exitosa", typeof(NumberResponse))]
+        [SwaggerResponse(400, "Entrada inválida")]
+        public IActionResult CheckNumber([FromBody] NumberRequest request)
         {
-            return BadRequest(result);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = _numberService.GetNumberInfo(request.Number);
+
+            if (result.Type == "Error")
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
 
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Verifica número mediante parámetro en la URL
-    /// </summary>
-    /// <param name="number">Número a verificar</param>
-    /// <returns>Información sobre el número</returns>
-    [HttpGet("check/{number}")]
-    [SwaggerOperation(Summary = "Verificar par/impar (GET)", 
-                     Description = "Verifica si el número en la URL es par o impar.")]
-    public IActionResult CheckNumberGet([FromRoute] string number)
-    {
-        // Validar que solo contenga números
-        if (!System.Text.RegularExpressions.Regex.IsMatch(number, @"^-?\d+$"))
+        /// <summary>
+        /// Verifica si un número es par o impar (GET)
+        /// </summary>
+        /// <param name="number">Número como parámetro en la URL</param>
+        /// <returns>Resultado de la verificación</returns>
+        [HttpGet("check/{number}")]
+        [SwaggerOperation(Summary = "Verifica si el número es par o impar (GET)",
+                          Description = "Pasa un número en la URL para verificar si es par o impar.")]
+        [SwaggerResponse(200, "Verificación exitosa", typeof(NumberResponse))]
+        [SwaggerResponse(400, "Entrada inválida")]
+        public IActionResult CheckNumberGet([FromRoute] string number)
         {
-            return BadRequest(new { Message = "Solo se permiten números enteros, no letras" });
-        }
+            // Validar que sea número entero (positivo o negativo)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(number, @"^-?\d+$"))
+            {
+                return BadRequest(new { Message = "Solo se permiten números enteros. No se aceptan letras ni decimales." });
+            }
 
-        var result = _numberService.GetNumberInfo(number);
-        return Ok(result);
+            var result = _numberService.GetNumberInfo(number);
+            return Ok(result);
+        }
     }
 }

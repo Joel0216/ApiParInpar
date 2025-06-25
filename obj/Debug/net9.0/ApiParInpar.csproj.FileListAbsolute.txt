@@ -42,3 +42,11 @@ C:\Users\denic\ApiParInpar\obj\Debug\net9.0\refint\ApiParInpar.dll
 C:\Users\denic\ApiParInpar\obj\Debug\net9.0\ApiParInpar.pdb
 C:\Users\denic\ApiParInpar\obj\Debug\net9.0\ApiParInpar.genruntimeconfig.cache
 C:\Users\denic\ApiParInpar\obj\Debug\net9.0\ref\ApiParInpar.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.Abstractions.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\denic\ApiParInpar\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll

@@ -1,59 +1,64 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TextAnalyzerAPI.Domain.Models;
 using TextAnalyzerAPI.Services.Features.Palindromes;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace TextAnalyzerAPI.Controllers.V1;
-
-[ApiController]
-[Route("api/v1/[controller]")]
-public class PalindromeController : ControllerBase
+namespace TextAnalyzerAPI.Controllers.V1
 {
-    private readonly PalindromeService _palindromeService;
-
-    public PalindromeController(PalindromeService palindromeService)
+    [ApiController]
+    [Route("api/v1/[controller]")]
+    [Authorize] // ✅ Protegido con JWT
+    public class PalindromeController : ControllerBase
     {
-        _palindromeService = palindromeService;
-    }
+        private readonly PalindromeService _palindromeService;
 
-    /// <summary>
-    /// Verifica si un texto es palíndromo
-    /// </summary>
-    /// <param name="request">Texto a verificar (solo letras)</param>
-    /// <returns>Resultado de la verificación</returns>
-    [HttpPost("check")]
-    [SwaggerOperation(Summary = "Verificar palíndromo", 
-                     Description = "Verifica si el texto ingresado es un palíndromo. Solo acepta letras y espacios.")]
-    [SwaggerResponse(200, "Verificación exitosa", typeof(PalindromeResponse))]
-    [SwaggerResponse(400, "Datos inválidos")]
-    public IActionResult CheckPalindrome([FromBody] PalindromeRequest request)
-    {
-        if (!ModelState.IsValid)
+        public PalindromeController(PalindromeService palindromeService)
         {
-            return BadRequest(ModelState);
+            _palindromeService = palindromeService;
         }
 
-        var result = _palindromeService.CheckPalindrome(request.Text);
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Verifica palíndromo mediante parámetro en la URL
-    /// </summary>
-    /// <param name="text">Texto a verificar</param>
-    /// <returns>Resultado de la verificación</returns>
-    [HttpGet("check/{text}")]
-    [SwaggerOperation(Summary = "Verificar palíndromo (GET)", 
-                     Description = "Verifica si el texto en la URL es un palíndromo.")]
-    public IActionResult CheckPalindromeGet([FromRoute] string text)
-    {
-        // Validar que solo contenga letras
-        if (!System.Text.RegularExpressions.Regex.IsMatch(text, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
+        /// <summary>
+        /// Verifica si un texto es palíndromo (POST)
+        /// </summary>
+        /// <param name="request">Texto a verificar</param>
+        /// <returns>Resultado de la verificación</returns>
+        [HttpPost("check")]
+        [SwaggerOperation(Summary = "Verificar si un texto es palíndromo (POST)",
+                          Description = "Envía un texto en el cuerpo para verificar si es palíndromo.")]
+        [SwaggerResponse(200, "Verificación exitosa", typeof(PalindromeResponse))]
+        [SwaggerResponse(400, "Texto inválido")]
+        public IActionResult CheckPalindrome([FromBody] PalindromeRequest request)
         {
-            return BadRequest(new { Message = "Solo se permiten letras y espacios, no números" });
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Text))
+            {
+                return BadRequest(new { Message = "El texto es obligatorio." });
+            }
+
+            var result = _palindromeService.CheckPalindrome(request.Text);
+            return Ok(result);
         }
 
-        var result = _palindromeService.CheckPalindrome(text);
-        return Ok(result);
+        /// <summary>
+        /// Verifica si un texto es palíndromo (GET)
+        /// </summary>
+        /// <param name="text">Texto a verificar en la URL</param>
+        /// <returns>Resultado de la verificación</returns>
+        [HttpGet("check/{text}")]
+        [SwaggerOperation(Summary = "Verificar si un texto es palíndromo (GET)",
+                          Description = "Verifica directamente desde la URL si el texto es palíndromo.")]
+        [SwaggerResponse(200, "Verificación exitosa", typeof(PalindromeResponse))]
+        [SwaggerResponse(400, "Texto inválido")]
+        public IActionResult CheckPalindromeGet([FromRoute] string text)
+        {
+            // Validación: solo letras y espacios
+            if (!System.Text.RegularExpressions.Regex.IsMatch(text, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
+            {
+                return BadRequest(new { Message = "Solo se permiten letras y espacios. No se aceptan números ni símbolos." });
+            }
+
+            var result = _palindromeService.CheckPalindrome(text);
+            return Ok(result);
+        }
     }
 }
